@@ -59,5 +59,4 @@ jobs:
         with:
           subject-name: ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
-      
+          push-to-registry: false
