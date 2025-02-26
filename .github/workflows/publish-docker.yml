@@ -46,12 +46,12 @@ jobs:
           context: .
           push: true
           tags: |
-            '${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}'
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}
           labels: |
-            'org.opencontainers.image.source=${{ github.repositoryUrl }}'
-            'org.opencontainers.image.licenses=MIT'
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.licenses=MIT
           build-args:
-            'FABRIC_SERVER_DOWNLOAD_URL=https://meta.fabricmc.net/v2/versions/loader/${{ fromJson(env.VERSIONS).MinecraftVersion }}/${{ fromJson(env.VERSIONS).FabricLoaderVersion }}/${{ fromJson(env.VERSIONS).FabricInstallerVersion }}/server/jar'
+            FABRIC_SERVER_DOWNLOAD_URL=https://meta.fabricmc.net/v2/versions/loader/${{ fromJson(env.VERSIONS).MinecraftVersion }}/${{ fromJson(env.VERSIONS).FabricLoaderVersion }}/${{ fromJson(env.VERSIONS).FabricInstallerVersion }}/server/jar
       
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
