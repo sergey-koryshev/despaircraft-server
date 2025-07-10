@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - release/*
     paths-ignore:
       - '*.md'
 
@@ -41,6 +41,26 @@ jobs:
         run: |
           echo "VERSIONS=$(jq -c . < versions.json)" >> $GITHUB_ENV
 
+      - name: Determine internal version for Docker Image
+        run: |
+          image="${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}-latest"
+
+          # Attempt to pull the Docker image
+          if ! docker pull "$image" 2>/dev/null; then
+            echo "INTERNAL_VERSION=1" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          # Get the label value
+          label_value=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.internal-version" }}' "$image")
+
+          # Check if label exists and is not empty
+          if [ -n "$label_value" ]; then
+            echo "INTERNAL_VERSION=$((label_value + 1))" >> $GITHUB_ENV
+          else
+            echo "INTERNAL_VERSION=1" >> $GITHUB_ENV
+          fi
+
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
@@ -49,10 +69,12 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}
+            - ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}-latest
+            - ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:fabric-${{ fromJson(env.VERSIONS).MinecraftVersion }}-v${{ env.INTERNAL_VERSION }}
           labels: |
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.internal-version=${{ env.INTERNAL_VERSION }}
           build-args:
             FABRIC_SERVER_DOWNLOAD_URL=https://meta.fabricmc.net/v2/versions/loader/${{ fromJson(env.VERSIONS).MinecraftVersion }}/${{ fromJson(env.VERSIONS).FabricLoaderVersion }}/${{ fromJson(env.VERSIONS).FabricInstallerVersion }}/server/jar
       
