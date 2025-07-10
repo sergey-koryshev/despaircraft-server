@@ -58,7 +58,7 @@ jobs:
           if [ -n "$label_value" ]; then
             echo "INTERNAL_VERSION=$((label_value + 1))" >> $GITHUB_ENV
           else
-            echo 1
+            echo "INTERNAL_VERSION=1" >> $GITHUB_ENV
           fi
 
       - name: Build and push Docker image
